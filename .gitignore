@@ -1,0 +1,16 @@
+# Godot 4+ specific ignores
+.godot/
+*.translation
+*.gdignore
+*.tmp
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Output
+export_presets.cfg
+*.exe
+*.pck
+*.apk

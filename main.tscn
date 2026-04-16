@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://mainscene123"]
+
+[ext_resource type="Script" path="res://MuseumGenerator.gd" id="1_gen"]
+[ext_resource type="PackedScene" uid="uid://d3u4u4x5m2" path="res://Player.tscn" id="2_player"]
+
+[node name="Main" type="Node3D"]
+
+[node name="MuseumGenerator" type="Node3D" parent="."]
+script = ExtResource("1_gen")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 20, 0)
+shadow_enabled = true

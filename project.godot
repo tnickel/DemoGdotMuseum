@@ -11,8 +11,10 @@ config_version=5
 [application]
 
 config/name="DemoGdotMuseum"
-run/main_scene="res://main.tscn"
+run/main_scene="res://startup.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
+debug/file_logging/enable_file_logging=true
+debug/file_logging/log_path="res://godot_debug.log"
 
 [rendering]
 
@@ -30,4 +32,10 @@ ui_cancel={
 "events": [Object(InputEventKey,"device":-1,"keycode":4194305,"physical_keycode":4194305,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
 }
+
+[xr]
+
+openxr/enabled=false
+openxr/action_map="res://openxr_action_map.tres"
+shaders/enabled=false
 

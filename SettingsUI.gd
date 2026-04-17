@@ -1,7 +1,6 @@
 extends CanvasLayer
 
 var panel: Panel
-var sliders = {}
 var mgr
 
 func _ready():
@@ -10,24 +9,27 @@ func _ready():
     panel = Panel.new()
     panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
     panel.set_offsets_preset(Control.PRESET_CENTER_TOP)
-    panel.position.y = 30
-    panel.custom_minimum_size = Vector2(460, 600)
+    panel.position.y = 80
+    panel.custom_minimum_size = Vector2(500, 350)
     panel.visible = false
     add_child(panel)
     
     var vbox = VBoxContainer.new()
-    vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 10)
+    vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 15)
     panel.add_child(vbox)
     
     var title = Label.new()
-    title.text = "SETTINGS (Press ESC)"
+    title.text = "MUSEUM SETTINGS"
     title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     vbox.add_child(title)
     
+    vbox.add_child(HSeparator.new())
+    
+    # 1. Resolution
     var res_hbox = HBoxContainer.new()
     var res_lbl = Label.new()
     res_lbl.text = "Resolution"
-    res_lbl.custom_minimum_size.x = 200
+    res_lbl.custom_minimum_size.x = 220
     res_hbox.add_child(res_lbl)
     
     var res_opt = OptionButton.new()
@@ -42,16 +44,17 @@ func _ready():
     res_hbox.add_child(res_opt)
     vbox.add_child(res_hbox)
     
+    # 2. Quality
     var qual_hbox = HBoxContainer.new()
     var qual_lbl = Label.new()
-    qual_lbl.text = "Graphics Quality"
-    qual_lbl.custom_minimum_size.x = 200
+    qual_lbl.text = "Graphics Preset"
+    qual_lbl.custom_minimum_size.x = 220
     qual_hbox.add_child(qual_lbl)
     
     var qual_opt = OptionButton.new()
-    qual_opt.add_item("Low (No Post-FX, No Shadows)")
-    qual_opt.add_item("Medium (SSAO, Fog, Directional Shadows)")
-    qual_opt.add_item("High (Full Shadows, MSAA)")
+    qual_opt.add_item("Low (Fast)")
+    qual_opt.add_item("Medium (SSAO, Fog)")
+    qual_opt.add_item("High (Dynamic Shadows, MSAA)")
     qual_opt.selected = mgr.graphics_quality
     qual_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     qual_opt.item_selected.connect(func(idx): 
@@ -61,24 +64,92 @@ func _ready():
     qual_hbox.add_child(qual_opt)
     vbox.add_child(qual_hbox)
     
-    create_slider(vbox, "World Brightness", "world_brightness", 0.1, 5.0, mgr.world_brightness)
-    create_slider(vbox, "Flashlight Brightness", "flash_brightness", 0.0, 10.0, mgr.flash_brightness)
-    create_slider(vbox, "Wall Metallic", "wall_metallic", 0.0, 1.0, mgr.wall_metallic)
-    create_slider(vbox, "Wall Roughness", "wall_roughness", 0.0, 1.0, mgr.wall_roughness)
-    create_slider(vbox, "Monster Density", "monster_density", 0.0, 1.0, mgr.monster_density)
-    create_slider(vbox, "Neon Density", "neon_density", 0.0, 1.0, mgr.neon_density)
-    create_slider(vbox, "Gallery Density", "gallery_density", 0.0, 1.0, mgr.gallery_density)
-    create_slider(vbox, "Video Density", "video_density", 0.0, 1.0, mgr.video_density)
-    create_slider(vbox, "Chunk Size", "chunk_cells", 5, 30, mgr.chunk_cells, 1)
+    # 3. Global Illumination Toggle
+    var gi_hbox = HBoxContainer.new()
+    var gi_lbl = Label.new()
+    gi_lbl.text = "SDFGI (Software Raytracing)"
+    gi_lbl.custom_minimum_size.x = 220
+    gi_hbox.add_child(gi_lbl)
+    var gi_chk = CheckButton.new()
+    gi_chk.button_pressed = mgr.global_illumination
+    gi_chk.toggled.connect(func(v): 
+        mgr.global_illumination = v
+        mgr.apply_graphics_settings()
+    )
+    gi_hbox.add_child(gi_chk)
+    vbox.add_child(gi_hbox)
     
-    # --- Audio ---
-    var audio_sep = HSeparator.new()
-    vbox.add_child(audio_sep)
+    # 3.5 Atmosphere Preset
+    var atm_hbox = HBoxContainer.new()
+    var atm_lbl = Label.new()
+    atm_lbl.text = "Atmosphere (Light & Floor)"
+    atm_lbl.custom_minimum_size.x = 220
+    atm_hbox.add_child(atm_lbl)
     
+    var atm_opt = OptionButton.new()
+    atm_opt.add_item("L1: Cinematic Fog")
+    atm_opt.add_item("L2: Crisp Gallery")
+    atm_opt.add_item("L3: Moody Dark")
+    atm_opt.add_item("L4: Bright Volumetric")
+    atm_opt.add_item("L5: Pure Raytracing (Dark Floor)")
+    atm_opt.selected = mgr.atmosphere_preset
+    atm_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    atm_opt.item_selected.connect(func(idx): 
+        mgr.atmosphere_preset = idx
+        mgr.apply_visuals()
+    )
+    atm_hbox.add_child(atm_opt)
+    vbox.add_child(atm_hbox)
+    
+    # 3.6 Pillar Light Color
+    var col_hbox = HBoxContainer.new()
+    var col_lbl = Label.new()
+    col_lbl.text = "Interior Pillar Light Color"
+    col_lbl.custom_minimum_size.x = 220
+    col_hbox.add_child(col_lbl)
+    
+    var col_picker = ColorPickerButton.new()
+    col_picker.color = mgr.pillar_light_color
+    col_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    col_picker.color_changed.connect(func(c): 
+        mgr.pillar_light_color = c
+        mgr.apply_visuals()
+    )
+    col_hbox.add_child(col_picker)
+    vbox.add_child(col_hbox)
+    
+    # 3.7 VR Render Scale
+    var vr_hbox = HBoxContainer.new()
+    var vr_lbl = Label.new()
+    vr_lbl.text = "VR Render Scale"
+    vr_lbl.custom_minimum_size.x = 160
+    vr_hbox.add_child(vr_lbl)
+    
+    var vr_slider = HSlider.new()
+    vr_slider.min_value = 0.5
+    vr_slider.max_value = 2.0
+    vr_slider.step = 0.05
+    vr_slider.value = mgr.vr_scale
+    vr_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    
+    var vr_val_lbl = Label.new()
+    vr_val_lbl.custom_minimum_size.x = 60
+    vr_val_lbl.text = "%.2f x" % mgr.vr_scale
+    
+    vr_slider.value_changed.connect(func(v):
+        mgr.vr_scale = v
+        vr_val_lbl.text = "%.2f x" % v
+        mgr.apply_graphics_settings()
+    )
+    vr_hbox.add_child(vr_slider)
+    vr_hbox.add_child(vr_val_lbl)
+    vbox.add_child(vr_hbox)
+
+    # 4. Volume
     var vol_hbox = HBoxContainer.new()
     var vol_lbl = Label.new()
-    vol_lbl.text = "Musiklautstärke"
-    vol_lbl.custom_minimum_size.x = 200
+    vol_lbl.text = "Music Volume"
+    vol_lbl.custom_minimum_size.x = 160
     vol_hbox.add_child(vol_lbl)
     
     var vol_slider = HSlider.new()
@@ -90,54 +161,20 @@ func _ready():
     
     var vol_val_lbl = Label.new()
     vol_val_lbl.custom_minimum_size.x = 60
-    vol_val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    vol_val_lbl.text = _db_label(mgr.music_volume_db)
+    vol_val_lbl.text = str(mgr.music_volume_db) + " dB"
     
-    vol_slider.value_changed.connect(func(v: float):
+    vol_slider.value_changed.connect(func(v):
         mgr.music_volume_db = v
+        vol_val_lbl.text = str(v) + " dB"
         mgr.apply_audio()
-        mgr.save_settings()
-        vol_val_lbl.text = _db_label(v)
     )
     vol_hbox.add_child(vol_slider)
     vol_hbox.add_child(vol_val_lbl)
     vbox.add_child(vol_hbox)
     
-    # VSync toggle
-    var vsync_hbox = HBoxContainer.new()
-    var vsync_lbl = Label.new()
-    vsync_lbl.text = "VSync"
-    vsync_lbl.custom_minimum_size.x = 200
-    vsync_hbox.add_child(vsync_lbl)
-    var vsync_chk = CheckBox.new()
-    vsync_chk.text = "Enabled"
-    vsync_chk.button_pressed = DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED
-    vsync_chk.toggled.connect(func(on):
-        if on:
-            DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
-        else:
-            DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-    )
-    vsync_hbox.add_child(vsync_chk)
-    vbox.add_child(vsync_hbox)
+    vbox.add_child(HSeparator.new())
     
-    # Performance-HUD toggle
-    var hud_hbox = HBoxContainer.new()
-    var hud_lbl = Label.new()
-    hud_lbl.text = "Performance-Anzeige"
-    hud_lbl.custom_minimum_size.x = 200
-    hud_hbox.add_child(hud_lbl)
-    var hud_chk = CheckBox.new()
-    hud_chk.text = "Sichtbar"
-    hud_chk.button_pressed = mgr.show_perf_hud
-    hud_chk.toggled.connect(func(on):
-        mgr.show_perf_hud = on
-        mgr.save_settings()
-        # Der Performance-Timer reagiert automatisch beim naechsten Tick (0.5s)
-    )
-    hud_hbox.add_child(hud_chk)
-    vbox.add_child(hud_hbox)
-    
+    # Save & Actions
     var btn_save = Button.new()
     btn_save.text = "Save Settings"
     btn_save.pressed.connect(func(): mgr.save_settings())
@@ -145,53 +182,11 @@ func _ready():
     
     var btn_restart = Button.new()
     btn_restart.text = "Restart Museum"
-    btn_restart.pressed.connect(func():
-        mgr.save_settings()
-        Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-        get_tree().change_scene_to_file("res://main.tscn")
-    )
+    btn_restart.pressed.connect(func(): get_tree().change_scene_to_file("res://main.tscn"))
     vbox.add_child(btn_restart)
-
-func create_slider(parent: Control, label_text: String, prop: String, min_v: float, max_v: float, curr_v: float, step_v: float = 0.01):
-    var hbox = HBoxContainer.new()
-    var lbl = Label.new()
-    lbl.text = label_text
-    lbl.custom_minimum_size.x = 200
-    hbox.add_child(lbl)
-    
-    var sl = HSlider.new()
-    sl.min_value = min_v
-    sl.max_value = max_v
-    sl.value = curr_v
-    sl.step = step_v
-    sl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    
-    # Value label for integer sliders
-    var val_lbl: Label = null
-    if step_v >= 1:
-        val_lbl = Label.new()
-        val_lbl.text = str(int(curr_v))
-        val_lbl.custom_minimum_size.x = 30
-        val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    
-    sl.value_changed.connect(func(v): 
-        mgr.set(prop, int(v) if step_v >= 1 else v)
-        if val_lbl: val_lbl.text = str(int(v))
-        mgr.apply_visuals()
-    )
-    hbox.add_child(sl)
-    if val_lbl: hbox.add_child(val_lbl)
-    parent.add_child(hbox)
-    sliders[prop] = sl
 
 func _process(delta):
     if Input.get_mouse_mode() == Input.MOUSE_MODE_VISIBLE:
         panel.visible = true
     else:
         panel.visible = false
-
-func _db_label(db: float) -> String:
-    if db <= -39.5:
-        return "STUMM"
-    return "%+.0f dB" % db
-

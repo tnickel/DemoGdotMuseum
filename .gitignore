@@ -19,3 +19,12 @@ videos/
 *.jpg
 *.png
 *.webp
+
+# Versioned museum artwork and skybox source images
+!/artists/**/*.jpg
+!/artists/**/*.png
+!/artists/**/*.webp
+!/textures/skyboxes/*.jpg
+!/textures/skyboxes/*.png
+!/textures/skyboxes/*.webp
+/textures/skyboxes/tmp/

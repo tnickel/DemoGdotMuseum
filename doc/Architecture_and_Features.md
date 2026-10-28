@@ -42,4 +42,4 @@ Das System greift dynamisch auf das `artists/`-Verzeichnis zurück. Um einen neu
 3. Lege die entsprechenden JPG/PNG Bilder dort ab. Der Code platziert eigenständig die Bilderahmen und positioniert die Spots im neu erzeugten Flur.
 
 ### Git Ignore
-Achtung: Aufgrund der Größenlimitierung bei Git-Plattformen sind große Dateien, Videos (z.B. der `videos/`-Ordner) und Raw-Image Binaries (`*.jpg`, `*.png`, `*.webp`) vorsätzlich aus dem Remote-Git ausgeschlossen. Das Repository umfasst im Wesentlichen die pure Logik und Szeneriestruktur.
+Die Künstlerbilder unter `artists/` und die Weltraumtexturen direkt unter `textures/skyboxes/` sind im Repository enthalten. JPG-, PNG- und WebP-Dateien in diesen Verzeichnissen sind ausdrücklich von den allgemeinen Bild-Ignore-Regeln ausgenommen. Godots Cache (`.godot/`), Videos, Programmexporte, temporäre Skybox-Downloads unter `textures/skyboxes/tmp/` und sonstige lokale Bildexperimente bleiben ausgeschlossen.
